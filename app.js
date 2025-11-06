@@ -112,6 +112,7 @@ function setupAuthListeners() {
             errorDiv.textContent = '';
             // Initialize app after successful login
             initializeApp();
+            setupEventListeners();
             loadProjects();
             renderProjects();
             updateStatistics();
@@ -311,6 +312,13 @@ function setupEventListeners() {
 
     // Export
     document.getElementById('exportBtn').addEventListener('click', exportData);
+
+    // Report generation
+    document.getElementById('generateReportBtn').addEventListener('click', generateReport);
+    document.getElementById('closeReportModalBtn').addEventListener('click', closeReportModal);
+    document.getElementById('closeReportBtn').addEventListener('click', closeReportModal);
+    document.getElementById('printReportBtn').addEventListener('click', printReport);
+    document.getElementById('downloadReportPdfBtn').addEventListener('click', downloadReportPdf);
 
     // Set today's date as default
     const today = new Date().toISOString().split('T')[0];
@@ -668,11 +676,219 @@ function showSuccessMessage(message) {
     }, 3000);
 }
 
+// ============================================
+// REPORT GENERATION
+// ============================================
+
+function generateReport() {
+    const reportContent = document.getElementById('reportContent');
+    const now = new Date();
+    const reportDate = now.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    // Calculate statistics
+    const totalProjects = projects.length;
+    const newIdeas = projects.filter(p => p.status === 'New ideas').length;
+    const inProgress = projects.filter(p => p.status === 'In progress').length;
+    const delivered = projects.filter(p => p.status === 'Delivered').length;
+    const highPriority = projects.filter(p => p.priority === 'High').length;
+    const mediumPriority = projects.filter(p => p.priority === 'Medium').length;
+    const lowPriority = projects.filter(p => p.priority === 'Low').length;
+
+    // Calculate completion rate
+    const completionRate = totalProjects > 0 ? ((delivered / totalProjects) * 100).toFixed(1) : 0;
+
+    // Get top priority projects
+    const topProjects = [...projects]
+        .sort((a, b) => calculatePriorityScore(b) - calculatePriorityScore(a))
+        .slice(0, 10);
+
+    // Generate HTML report
+    reportContent.innerHTML = `
+        <div class="report-header">
+            <h1 class="report-title">AI Projects Report</h1>
+            <p class="report-subtitle">Marketing Team AI Initiatives</p>
+            <p class="report-subtitle">Generated on ${reportDate}</p>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="report-section">
+            <h2 class="report-section-title">Executive Summary</h2>
+            <div class="report-summary-grid">
+                <div class="report-summary-card">
+                    <div class="report-summary-label">Total Projects</div>
+                    <div class="report-summary-value">${totalProjects}</div>
+                </div>
+                <div class="report-summary-card">
+                    <div class="report-summary-label">In Progress</div>
+                    <div class="report-summary-value" style="color: var(--primary-light);">${inProgress}</div>
+                </div>
+                <div class="report-summary-card">
+                    <div class="report-summary-label">Delivered</div>
+                    <div class="report-summary-value" style="color: var(--success-color);">${delivered}</div>
+                </div>
+                <div class="report-summary-card">
+                    <div class="report-summary-label">Completion Rate</div>
+                    <div class="report-summary-value" style="color: var(--success-color);">${completionRate}%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Breakdown -->
+        <div class="report-section">
+            <h2 class="report-section-title">Projects by Status</h2>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Count</th>
+                        <th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>New Ideas</td>
+                        <td>${newIdeas}</td>
+                        <td>${totalProjects > 0 ? ((newIdeas / totalProjects) * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                    <tr>
+                        <td>In Progress</td>
+                        <td>${inProgress}</td>
+                        <td>${totalProjects > 0 ? ((inProgress / totalProjects) * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                    <tr>
+                        <td>Delivered</td>
+                        <td>${delivered}</td>
+                        <td>${totalProjects > 0 ? ((delivered / totalProjects) * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Priority Breakdown -->
+        <div class="report-section">
+            <h2 class="report-section-title">Projects by Priority</h2>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Priority</th>
+                        <th>Count</th>
+                        <th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="report-priority-badge high">High</span></td>
+                        <td>${highPriority}</td>
+                        <td>${totalProjects > 0 ? ((highPriority / totalProjects) * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="report-priority-badge medium">Medium</span></td>
+                        <td>${mediumPriority}</td>
+                        <td>${totalProjects > 0 ? ((mediumPriority / totalProjects) * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="report-priority-badge low">Low</span></td>
+                        <td>${lowPriority}</td>
+                        <td>${totalProjects > 0 ? ((lowPriority / totalProjects) * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Top Priority Projects -->
+        <div class="report-section">
+            <h2 class="report-section-title">Top 10 Priority Projects</h2>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Assigned To</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Score</th>
+                        <th>Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${topProjects.map(project => `
+                        <tr>
+                            <td><strong>${escapeHtml(project.name)}</strong></td>
+                            <td>${escapeHtml(project.person || 'Unassigned')}</td>
+                            <td>${project.status}</td>
+                            <td><span class="report-priority-badge ${project.priority.toLowerCase()}">${project.priority}</span></td>
+                            <td><strong>${calculatePriorityScore(project).toFixed(2)}</strong></td>
+                            <td>${project.impact}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- All Projects List -->
+        <div class="report-section">
+            <h2 class="report-section-title">All Projects (${totalProjects})</h2>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Assigned To</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${projects.map(project => `
+                        <tr>
+                            <td><strong>${escapeHtml(project.name)}</strong></td>
+                            <td>${escapeHtml(project.person || 'Unassigned')}</td>
+                            <td>${project.status}</td>
+                            <td><span class="report-priority-badge ${project.priority.toLowerCase()}">${project.priority}</span></td>
+                            <td>${project.date ? formatDate(project.date) : 'No date'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="report-footer">
+            <p>This report was generated automatically by the AI Project Management System</p>
+            <p>Confidential - For internal use only</p>
+        </div>
+    `;
+
+    // Show modal
+    document.getElementById('reportModal').classList.add('active');
+}
+
+function closeReportModal() {
+    document.getElementById('reportModal').classList.remove('active');
+}
+
+function printReport() {
+    window.print();
+}
+
+function downloadReportPdf() {
+    // For a simple solution, we'll use the browser's print-to-PDF functionality
+    alert('To download as PDF:\n\n1. Click "Print Report"\n2. Choose "Save as PDF" in the print dialog\n3. Click "Save"\n\nAlternatively, use your browser\'s print function (Ctrl/Cmd + P) and select "Save as PDF".');
+    window.print();
+}
+
 // Close modal when clicking outside
 document.addEventListener('click', (e) => {
-    const modal = document.getElementById('editModal');
-    if (e.target === modal) {
+    const editModal = document.getElementById('editModal');
+    const reportModal = document.getElementById('reportModal');
+
+    if (e.target === editModal) {
         closeEditModal();
+    }
+    if (e.target === reportModal) {
+        closeReportModal();
     }
 });
 

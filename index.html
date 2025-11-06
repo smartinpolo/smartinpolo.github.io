@@ -150,7 +150,8 @@
                 </select>
             </div>
 
-            <button class="btn-secondary" id="exportBtn">📊 Export Data</button>
+            <button class="btn-secondary" id="exportBtn">Export Data</button>
+            <button class="btn-secondary" id="generateReportBtn">Generate Report</button>
         </section>
 
         <!-- Card View Sections -->
@@ -211,6 +212,26 @@
                 </div>
             </div>
         </section>
+    </div>
+
+    <!-- Report Modal -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content report-modal-content">
+            <div class="form-header">
+                <h2>AI Projects Report</h2>
+                <button class="btn-close" id="closeReportModalBtn">&times;</button>
+            </div>
+
+            <div id="reportContent" class="report-content">
+                <!-- Report will be generated here -->
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-primary" id="printReportBtn">Print Report</button>
+                <button class="btn-secondary" id="downloadReportPdfBtn">Download as PDF</button>
+                <button class="btn-secondary" id="closeReportBtn">Close</button>
+            </div>
+        </div>
     </div>
 
     <!-- Edit Modal -->
