@@ -12,9 +12,9 @@ The system includes **password authentication** to protect your private project 
 - Logout functionality
 - Easy password setup with included helper tool
 
-**Default Password:** `marketing2025`
+**Default Password:** `admin`
 
-⚠️ **IMPORTANT:** Change the default password immediately after deployment! See [Changing the Password](#changing-the-password) below.
+⚠️ **IMPORTANT:** This is a temporary password for initial setup. Change it immediately after first login! See [Changing the Password](#changing-the-password) below.
 
 ## Features
 

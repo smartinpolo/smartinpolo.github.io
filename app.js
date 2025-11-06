@@ -20,8 +20,9 @@ const AUTH_REMEMBER_KEY = 'aiProjectsRemember';
 
 // IMPORTANT: Replace this hash with your own!
 // Open setup-password.html to generate your password hash
-// Default password (for first-time setup): "marketing2025"
-const PASSWORD_HASH = 'eb5e1b6ddaa37d4191f5288dd2a58dd8f23483db4cb849a5c0fae0926ee0c6ed'; // SHA-256 of "marketing2025"
+// TEMPORARY password for setup: "admin"
+// Please change this immediately using setup-password.html
+const PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // SHA-256 of "admin"
 
 // SHA-256 Hash Function
 async function hashPassword(password) {
