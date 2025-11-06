@@ -36,6 +36,11 @@ async function hashPassword(password) {
 
 // Check Authentication Status
 function checkAuth() {
+    // TEMPORARY: Authentication disabled for initial setup
+    // Remove this return statement and uncomment the code below to enable password protection
+    return true;
+
+    /* Uncomment this section to enable authentication:
     // Check sessionStorage first
     const sessionAuth = sessionStorage.getItem(AUTH_KEY);
     if (sessionAuth === 'true') {
@@ -51,6 +56,7 @@ function checkAuth() {
     }
 
     return false;
+    */
 }
 
 // Authenticate User
@@ -88,6 +94,11 @@ function updateAuthUI() {
     if (isAuthenticated) {
         authScreen.classList.add('hidden');
         mainContent.classList.add('authenticated');
+        // Hide logout button when auth is disabled
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.style.display = 'none';
+        }
     } else {
         authScreen.classList.remove('hidden');
         mainContent.classList.remove('authenticated');
