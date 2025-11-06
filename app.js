@@ -1,0 +1,552 @@
+// AI Project Management System
+// Local Storage Key
+const STORAGE_KEY = 'aiProjectsData';
+
+// Project Data Structure
+let projects = [];
+
+// Priority Scoring System
+const PRIORITY_SCORES = {
+    'High': 3,
+    'Medium': 2,
+    'Low': 1
+};
+
+const IMPACT_SCORES = {
+    'Critical': 4,
+    'High': 3,
+    'Medium': 2,
+    'Low': 1
+};
+
+const EFFORT_SCORES = {
+    'Small': 4,    // Less effort = higher score
+    'Medium': 3,
+    'Large': 2,
+    'XLarge': 1
+};
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+    initializeApp();
+    setupEventListeners();
+    loadProjects();
+    renderProjects();
+    updateStatistics();
+});
+
+// Initialize with default data if empty
+function initializeApp() {
+    const existingData = localStorage.getItem(STORAGE_KEY);
+    if (!existingData) {
+        projects = getInitialProjects();
+        saveProjects();
+    }
+}
+
+// Initial Projects Data (from user's provided list)
+function getInitialProjects() {
+    return [
+        {
+            id: generateId(),
+            name: 'Automated Nurture Cadences Updater',
+            description: '',
+            person: 'Samuel Martin',
+            status: 'New ideas',
+            priority: 'Medium',
+            date: '2025-11-04',
+            subitems: [],
+            impact: 'High',
+            effort: 'Medium',
+            calculatedScore: 0
+        },
+        {
+            id: generateId(),
+            name: 'SEO / Metadata validator and Scraper',
+            description: '',
+            person: 'Samuel Martin',
+            status: 'New ideas',
+            priority: 'Medium',
+            date: '2025-11-04',
+            subitems: [],
+            impact: 'Medium',
+            effort: 'Small',
+            calculatedScore: 0
+        },
+        {
+            id: generateId(),
+            name: 'AI MKT Governance',
+            description: '',
+            person: 'Samuel Martin, Rob Woestenborghs',
+            status: 'In progress',
+            priority: 'High',
+            date: '2025-11-03',
+            subitems: [],
+            impact: 'Critical',
+            effort: 'Large',
+            calculatedScore: 0
+        },
+        {
+            id: generateId(),
+            name: 'Website Analyst',
+            description: '',
+            person: '',
+            status: 'In progress',
+            priority: 'Medium',
+            date: '2025-11-03',
+            subitems: [],
+            impact: 'Medium',
+            effort: 'Medium',
+            calculatedScore: 0
+        },
+        {
+            id: generateId(),
+            name: 'Marketing Content Agent',
+            description: '',
+            person: '',
+            status: 'In progress',
+            priority: 'Medium',
+            date: '2025-11-03',
+            subitems: [],
+            impact: 'High',
+            effort: 'Large',
+            calculatedScore: 0
+        },
+        {
+            id: generateId(),
+            name: 'Marky, Martech chatbot',
+            description: '',
+            person: '',
+            status: 'Delivered',
+            priority: 'Low',
+            date: '',
+            subitems: [],
+            impact: 'Medium',
+            effort: 'Medium',
+            calculatedScore: 0
+        }
+    ];
+}
+
+// Generate unique ID
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// Calculate Priority Score
+function calculatePriorityScore(project) {
+    const priorityScore = PRIORITY_SCORES[project.priority] || 2;
+    const impactScore = IMPACT_SCORES[project.impact] || 2;
+    const effortScore = EFFORT_SCORES[project.effort] || 3;
+
+    // Formula: (Priority * 2 + Impact * 3 + Effort) / 6
+    // This weights impact highest, then priority, then effort
+    const totalScore = (priorityScore * 2 + impactScore * 3 + effortScore) / 6;
+
+    return parseFloat(totalScore.toFixed(2));
+}
+
+// Setup Event Listeners
+function setupEventListeners() {
+    // Form toggle
+    document.getElementById('toggleFormBtn').addEventListener('click', toggleForm);
+    document.getElementById('closeFormBtn').addEventListener('click', closeForm);
+    document.getElementById('cancelFormBtn').addEventListener('click', closeForm);
+
+    // Form submission
+    document.getElementById('intakeForm').addEventListener('submit', handleFormSubmit);
+
+    // Edit modal
+    document.getElementById('closeEditModalBtn').addEventListener('click', closeEditModal);
+    document.getElementById('cancelEditBtn').addEventListener('click', closeEditModal);
+    document.getElementById('editForm').addEventListener('submit', handleEditSubmit);
+    document.getElementById('deleteProjectBtn').addEventListener('click', handleDeleteProject);
+
+    // Filter and sort
+    document.getElementById('filterPriority').addEventListener('change', renderProjects);
+    document.getElementById('sortBy').addEventListener('change', renderProjects);
+
+    // Export
+    document.getElementById('exportBtn').addEventListener('click', exportData);
+
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('projectDate').value = today;
+}
+
+// Toggle Form
+function toggleForm() {
+    const formContainer = document.getElementById('intakeFormContainer');
+    formContainer.classList.toggle('active');
+}
+
+function closeForm() {
+    document.getElementById('intakeFormContainer').classList.remove('active');
+    document.getElementById('intakeForm').reset();
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('projectDate').value = today;
+}
+
+// Handle Form Submit
+function handleFormSubmit(e) {
+    e.preventDefault();
+
+    const formData = {
+        id: generateId(),
+        name: document.getElementById('projectName').value,
+        description: document.getElementById('projectDescription').value,
+        person: document.getElementById('projectPerson').value,
+        status: document.getElementById('projectStatus').value,
+        priority: document.getElementById('projectPriority').value,
+        date: document.getElementById('projectDate').value,
+        subitems: document.getElementById('projectSubitems').value
+            .split(',')
+            .map(item => item.trim())
+            .filter(item => item),
+        impact: document.getElementById('projectImpact').value,
+        effort: document.getElementById('projectEffort').value,
+        calculatedScore: 0
+    };
+
+    // Calculate priority score
+    formData.calculatedScore = calculatePriorityScore(formData);
+
+    projects.push(formData);
+    saveProjects();
+    renderProjects();
+    updateStatistics();
+    closeForm();
+
+    showSuccessMessage('Project added successfully!');
+}
+
+// Save projects to localStorage
+function saveProjects() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+}
+
+// Load projects from localStorage
+function loadProjects() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+        projects = JSON.parse(stored);
+        // Recalculate scores for existing projects
+        projects = projects.map(project => ({
+            ...project,
+            calculatedScore: calculatePriorityScore(project)
+        }));
+        saveProjects();
+    }
+}
+
+// Render Projects
+function renderProjects() {
+    const filterPriority = document.getElementById('filterPriority').value;
+    const sortBy = document.getElementById('sortBy').value;
+
+    // Filter projects
+    let filteredProjects = projects;
+    if (filterPriority !== 'All') {
+        filteredProjects = projects.filter(p => p.priority === filterPriority);
+    }
+
+    // Sort projects
+    filteredProjects = sortProjects(filteredProjects, sortBy);
+
+    // Separate by status
+    const newIdeas = filteredProjects.filter(p => p.status === 'New ideas');
+    const inProgress = filteredProjects.filter(p => p.status === 'In progress');
+    const delivered = filteredProjects.filter(p => p.status === 'Delivered');
+
+    // Render each column
+    renderColumn('newIdeasCards', newIdeas, 'countNewIdeas');
+    renderColumn('inProgressCards', inProgress, 'countInProgress');
+    renderColumn('deliveredCards', delivered, 'countDelivered');
+}
+
+// Sort Projects
+function sortProjects(projectsList, sortBy) {
+    const sorted = [...projectsList];
+
+    switch (sortBy) {
+        case 'priority':
+            return sorted.sort((a, b) => {
+                const scoreA = calculatePriorityScore(a);
+                const scoreB = calculatePriorityScore(b);
+                return scoreB - scoreA; // Highest score first
+            });
+        case 'date':
+            return sorted.sort((a, b) => {
+                if (!a.date) return 1;
+                if (!b.date) return -1;
+                return new Date(b.date) - new Date(a.date);
+            });
+        case 'name':
+            return sorted.sort((a, b) => a.name.localeCompare(b.name));
+        default:
+            return sorted;
+    }
+}
+
+// Render Column
+function renderColumn(containerId, projectsList, countId) {
+    const container = document.getElementById(containerId);
+    const countElement = document.getElementById(countId);
+
+    countElement.textContent = projectsList.length;
+
+    if (projectsList.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <div class="empty-state-text">No projects in this category</div>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = projectsList.map(project => createProjectCard(project)).join('');
+
+    // Add click listeners to cards
+    container.querySelectorAll('.project-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const projectId = card.dataset.projectId;
+            openEditModal(projectId);
+        });
+    });
+}
+
+// Create Project Card HTML
+function createProjectCard(project) {
+    const priorityClass = project.priority.toLowerCase();
+    const priorityEmoji = getPriorityEmoji(project.priority);
+    const formattedDate = project.date ? formatDate(project.date) : 'No date';
+    const score = calculatePriorityScore(project);
+
+    return `
+        <div class="project-card priority-${priorityClass}" data-project-id="${project.id}">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">${escapeHtml(project.name)}</div>
+                </div>
+                <span class="priority-badge ${priorityClass}">
+                    ${priorityEmoji} ${project.priority}
+                </span>
+            </div>
+
+            ${project.description ? `<div class="card-description">${escapeHtml(project.description)}</div>` : ''}
+
+            <div class="card-meta">
+                ${project.person ? `
+                    <div class="meta-row">
+                        <span>👤</span>
+                        <strong>${escapeHtml(project.person)}</strong>
+                    </div>
+                ` : ''}
+
+                <div class="meta-row">
+                    <span>📅</span>
+                    <span>${formattedDate}</span>
+                </div>
+
+                <div class="meta-row">
+                    <span>📊</span>
+                    <span>Impact: <span class="impact-badge ${project.impact.toLowerCase()}">${project.impact}</span></span>
+                </div>
+
+                <div class="meta-row">
+                    <span>⚡</span>
+                    <span>Effort: ${project.effort}</span>
+                </div>
+
+                <div class="meta-row">
+                    <span>🎯</span>
+                    <span>Priority Score: <strong>${score}</strong>/10</span>
+                </div>
+            </div>
+
+            ${project.subitems && project.subitems.length > 0 ? `
+                <div class="subitems">
+                    ${project.subitems.map(item => `
+                        <span class="subitem">${escapeHtml(item)}</span>
+                    `).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Get Priority Emoji
+function getPriorityEmoji(priority) {
+    const emojis = {
+        'High': '🔴',
+        'Medium': '🟡',
+        'Low': '🟢'
+    };
+    return emojis[priority] || '⚪';
+}
+
+// Format Date
+function formatDate(dateString) {
+    if (!dateString) return 'No date';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+// Escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Update Statistics
+function updateStatistics() {
+    document.getElementById('totalProjects').textContent = projects.length;
+    document.getElementById('highPriorityCount').textContent =
+        projects.filter(p => p.priority === 'High').length;
+    document.getElementById('inProgressCount').textContent =
+        projects.filter(p => p.status === 'In progress').length;
+    document.getElementById('deliveredCount').textContent =
+        projects.filter(p => p.status === 'Delivered').length;
+}
+
+// Edit Modal Functions
+function openEditModal(projectId) {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+
+    // Populate form
+    document.getElementById('editProjectId').value = project.id;
+    document.getElementById('editProjectName').value = project.name;
+    document.getElementById('editProjectDescription').value = project.description || '';
+    document.getElementById('editProjectPerson').value = project.person || '';
+    document.getElementById('editProjectStatus').value = project.status;
+    document.getElementById('editProjectPriority').value = project.priority;
+    document.getElementById('editProjectDate').value = project.date || '';
+    document.getElementById('editProjectSubitems').value = project.subitems ? project.subitems.join(', ') : '';
+    document.getElementById('editProjectImpact').value = project.impact || 'Medium';
+    document.getElementById('editProjectEffort').value = project.effort || 'Medium';
+
+    // Show modal
+    document.getElementById('editModal').classList.add('active');
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+    document.getElementById('editForm').reset();
+}
+
+function handleEditSubmit(e) {
+    e.preventDefault();
+
+    const projectId = document.getElementById('editProjectId').value;
+    const projectIndex = projects.findIndex(p => p.id === projectId);
+
+    if (projectIndex === -1) return;
+
+    projects[projectIndex] = {
+        ...projects[projectIndex],
+        name: document.getElementById('editProjectName').value,
+        description: document.getElementById('editProjectDescription').value,
+        person: document.getElementById('editProjectPerson').value,
+        status: document.getElementById('editProjectStatus').value,
+        priority: document.getElementById('editProjectPriority').value,
+        date: document.getElementById('editProjectDate').value,
+        subitems: document.getElementById('editProjectSubitems').value
+            .split(',')
+            .map(item => item.trim())
+            .filter(item => item),
+        impact: document.getElementById('editProjectImpact').value,
+        effort: document.getElementById('editProjectEffort').value
+    };
+
+    // Recalculate score
+    projects[projectIndex].calculatedScore = calculatePriorityScore(projects[projectIndex]);
+
+    saveProjects();
+    renderProjects();
+    updateStatistics();
+    closeEditModal();
+
+    showSuccessMessage('Project updated successfully!');
+}
+
+function handleDeleteProject() {
+    if (!confirm('Are you sure you want to delete this project?')) {
+        return;
+    }
+
+    const projectId = document.getElementById('editProjectId').value;
+    projects = projects.filter(p => p.id !== projectId);
+
+    saveProjects();
+    renderProjects();
+    updateStatistics();
+    closeEditModal();
+
+    showSuccessMessage('Project deleted successfully!');
+}
+
+// Export Data
+function exportData() {
+    const dataStr = JSON.stringify(projects, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ai-projects-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    showSuccessMessage('Data exported successfully!');
+}
+
+// Show Success Message
+function showSuccessMessage(message) {
+    const existingMessage = document.querySelector('.success-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'success-message';
+    messageDiv.textContent = message;
+
+    const container = document.querySelector('.container');
+    container.insertBefore(messageDiv, container.firstChild);
+
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 3000);
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('editModal');
+    if (e.target === modal) {
+        closeEditModal();
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    // Escape to close modals
+    if (e.key === 'Escape') {
+        closeEditModal();
+        const formContainer = document.getElementById('intakeFormContainer');
+        if (formContainer.classList.contains('active')) {
+            closeForm();
+        }
+    }
+
+    // Ctrl/Cmd + N to open new project form
+    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        toggleForm();
+    }
+});

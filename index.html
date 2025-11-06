@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Project Management - Marketing Team</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI Project Management</h1>
+            <p class="subtitle">Marketing Team AI Initiatives</p>
+        </header>
+
+        <!-- Intake Form -->
+        <section class="intake-section">
+            <button class="btn-primary" id="toggleFormBtn">+ New AI Project</button>
+
+            <div class="intake-form-container" id="intakeFormContainer">
+                <div class="form-header">
+                    <h2>AI Project Intake Form</h2>
+                    <button class="btn-close" id="closeFormBtn">&times;</button>
+                </div>
+
+                <form id="intakeForm">
+                    <div class="form-group">
+                        <label for="projectName">Project Name *</label>
+                        <input type="text" id="projectName" required placeholder="e.g., AI Content Generator">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectDescription">Description</label>
+                        <textarea id="projectDescription" rows="3" placeholder="Brief description of the AI project"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectPerson">Assigned To *</label>
+                        <input type="text" id="projectPerson" required placeholder="e.g., Samuel Martin">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="projectStatus">Status *</label>
+                            <select id="projectStatus" required>
+                                <option value="New ideas">New ideas</option>
+                                <option value="In progress">In progress</option>
+                                <option value="Delivered">Delivered</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="projectPriority">Priority *</label>
+                            <select id="projectPriority" required>
+                                <option value="High">🔴 High</option>
+                                <option value="Medium" selected>🟡 Medium</option>
+                                <option value="Low">🟢 Low</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="projectDate">Date *</label>
+                            <input type="date" id="projectDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="projectSubitems">Subitems</label>
+                            <input type="text" id="projectSubitems" placeholder="Comma-separated">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectImpact">Business Impact</label>
+                        <select id="projectImpact">
+                            <option value="Critical">Critical</option>
+                            <option value="High">High</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectEffort">Effort Estimate</label>
+                        <select id="projectEffort">
+                            <option value="Small">Small (< 1 week)</option>
+                            <option value="Medium" selected>Medium (1-4 weeks)</option>
+                            <option value="Large">Large (1-3 months)</option>
+                            <option value="XLarge">X-Large (> 3 months)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Add Project</button>
+                        <button type="button" class="btn-secondary" id="cancelFormBtn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Filter and Sort Controls -->
+        <section class="controls">
+            <div class="control-group">
+                <label for="filterPriority">Filter by Priority:</label>
+                <select id="filterPriority">
+                    <option value="All">All</option>
+                    <option value="High">🔴 High</option>
+                    <option value="Medium">🟡 Medium</option>
+                    <option value="Low">🟢 Low</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="sortBy">Sort by:</label>
+                <select id="sortBy">
+                    <option value="priority">Priority</option>
+                    <option value="date">Date</option>
+                    <option value="name">Name</option>
+                </select>
+            </div>
+
+            <button class="btn-secondary" id="exportBtn">📊 Export Data</button>
+        </section>
+
+        <!-- Card View Sections -->
+        <div class="board">
+            <!-- New Ideas Column -->
+            <div class="column">
+                <div class="column-header new-ideas">
+                    <h2>💡 New Ideas</h2>
+                    <span class="count" id="countNewIdeas">0</span>
+                </div>
+                <div class="cards-container" id="newIdeasCards">
+                    <!-- Cards will be injected here -->
+                </div>
+            </div>
+
+            <!-- In Progress Column -->
+            <div class="column">
+                <div class="column-header in-progress">
+                    <h2>🚀 In Progress</h2>
+                    <span class="count" id="countInProgress">0</span>
+                </div>
+                <div class="cards-container" id="inProgressCards">
+                    <!-- Cards will be injected here -->
+                </div>
+            </div>
+
+            <!-- Delivered Column -->
+            <div class="column">
+                <div class="column-header delivered">
+                    <h2>✅ Delivered</h2>
+                    <span class="count" id="countDelivered">0</span>
+                </div>
+                <div class="cards-container" id="deliveredCards">
+                    <!-- Cards will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <section class="statistics">
+            <h3>📈 Project Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalProjects">0</div>
+                    <div class="stat-label">Total Projects</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="highPriorityCount">0</div>
+                    <div class="stat-label">High Priority</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="inProgressCount">0</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="deliveredCount">0</div>
+                    <div class="stat-label">Delivered</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="form-header">
+                <h2>Edit Project</h2>
+                <button class="btn-close" id="closeEditModalBtn">&times;</button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editProjectId">
+
+                <div class="form-group">
+                    <label for="editProjectName">Project Name *</label>
+                    <input type="text" id="editProjectName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editProjectDescription">Description</label>
+                    <textarea id="editProjectDescription" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="editProjectPerson">Assigned To *</label>
+                    <input type="text" id="editProjectPerson" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editProjectStatus">Status *</label>
+                        <select id="editProjectStatus" required>
+                            <option value="New ideas">New ideas</option>
+                            <option value="In progress">In progress</option>
+                            <option value="Delivered">Delivered</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editProjectPriority">Priority *</label>
+                        <select id="editProjectPriority" required>
+                            <option value="High">🔴 High</option>
+                            <option value="Medium">🟡 Medium</option>
+                            <option value="Low">🟢 Low</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editProjectDate">Date *</label>
+                        <input type="date" id="editProjectDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editProjectSubitems">Subitems</label>
+                        <input type="text" id="editProjectSubitems">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="editProjectImpact">Business Impact</label>
+                    <select id="editProjectImpact">
+                        <option value="Critical">Critical</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editProjectEffort">Effort Estimate</label>
+                    <select id="editProjectEffort">
+                        <option value="Small">Small (< 1 week)</option>
+                        <option value="Medium">Medium (1-4 weeks)</option>
+                        <option value="Large">Large (1-3 months)</option>
+                        <option value="XLarge">X-Large (> 3 months)</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Update Project</button>
+                    <button type="button" class="btn-danger" id="deleteProjectBtn">Delete Project</button>
+                    <button type="button" class="btn-secondary" id="cancelEditBtn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
