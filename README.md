@@ -1,6 +1,20 @@
 # AI Project Management System
 
-A comprehensive project management system for tracking AI initiatives in marketing teams, featuring an intake form, intelligent prioritization, and a card-based Kanban view.
+A comprehensive project management system for tracking AI initiatives in marketing teams, featuring an intake form, intelligent prioritization, a card-based Kanban view, and password protection for private data.
+
+## 🔒 Security Features
+
+The system includes **password authentication** to protect your private project data:
+- Login screen required before accessing the system
+- SHA-256 password hashing for security
+- Session-based authentication (cleared when browser closes)
+- "Remember me" option for trusted devices
+- Logout functionality
+- Easy password setup with included helper tool
+
+**Default Password:** `marketing2025`
+
+⚠️ **IMPORTANT:** Change the default password immediately after deployment! See [Changing the Password](#changing-the-password) below.
 
 ## Features
 
@@ -83,6 +97,55 @@ Click the **"📊 Export Data"** button to download all projects as a JSON file 
 ## Keyboard Shortcuts
 - `Ctrl/Cmd + N` - Open new project form
 - `Escape` - Close open modals or forms
+
+## Changing the Password
+
+For security, you should change the default password immediately after deployment. Here's how:
+
+### Method 1: Using the Password Setup Tool (Recommended)
+
+1. Open `setup-password.html` in your browser (you can open the file locally before deploying)
+2. Enter your desired password (minimum 8 characters recommended)
+3. Confirm the password
+4. Click "Generate Password Hash"
+5. Copy the generated hash (long string of letters and numbers)
+6. Open `app.js` in a text editor
+7. Find line 18: `const PASSWORD_HASH = '...';`
+8. Replace the hash between the quotes with your new hash
+9. Save the file and commit/push your changes
+
+### Method 2: Using Browser Console
+
+1. Log into the system with the current password
+2. Open browser developer tools (F12)
+3. Go to the Console tab
+4. Type: `await hashPassword("your-new-password-here")`
+5. Press Enter
+6. Copy the resulting hash
+7. Follow steps 6-9 from Method 1 above
+
+### Security Notes
+
+- The password hash cannot be reversed - if you forget your password, you'll need to generate a new hash
+- Store your password securely (use a password manager)
+- Use a strong password with a mix of letters, numbers, and symbols
+- Don't share the password in public repositories or communications
+- Change the password periodically for better security
+
+### Understanding Client-Side Authentication
+
+This system uses client-side authentication, which means:
+- ✅ Provides a barrier against casual access
+- ✅ Works great for internal team use on GitHub Pages
+- ✅ No server required - fully static hosting
+- ⚠️ The password hash is visible in the source code
+- ⚠️ Determined users with technical knowledge could bypass it
+- ⚠️ Not suitable for highly sensitive data or compliance requirements
+
+For most internal marketing team use cases, this provides adequate protection. If you need stronger security, consider:
+- Moving to a server-based solution with proper backend authentication
+- Using a private GitHub repository (requires GitHub Pro)
+- Implementing additional security layers
 
 ## Pre-loaded Projects
 

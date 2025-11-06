@@ -1,6 +1,140 @@
 // AI Project Management System
 // Local Storage Key
 const STORAGE_KEY = 'aiProjectsData';
+const AUTH_KEY = 'aiProjectsAuth';
+const AUTH_REMEMBER_KEY = 'aiProjectsRemember';
+
+// ============================================
+// AUTHENTICATION SYSTEM
+// ============================================
+// To set up your password:
+// 1. Open setup-password.html in your browser
+// 2. Enter your desired password and generate the hash
+// 3. Copy the hash and replace the PASSWORD_HASH value below
+//
+// Or use the browser console after any login:
+// 1. Run: await hashPassword("your-password")
+// 2. Copy the resulting hash
+// 3. Replace the PASSWORD_HASH value below
+// ============================================
+
+// IMPORTANT: Replace this hash with your own!
+// Open setup-password.html to generate your password hash
+// Default password (for first-time setup): "marketing2025"
+const PASSWORD_HASH = 'eb5e1b6ddaa37d4191f5288dd2a58dd8f23483db4cb849a5c0fae0926ee0c6ed'; // SHA-256 of "marketing2025"
+
+// SHA-256 Hash Function
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
+
+// Check Authentication Status
+function checkAuth() {
+    // Check sessionStorage first
+    const sessionAuth = sessionStorage.getItem(AUTH_KEY);
+    if (sessionAuth === 'true') {
+        return true;
+    }
+
+    // Check localStorage if "remember me" was checked
+    const rememberAuth = localStorage.getItem(AUTH_REMEMBER_KEY);
+    if (rememberAuth === 'true') {
+        // Re-authenticate in session
+        sessionStorage.setItem(AUTH_KEY, 'true');
+        return true;
+    }
+
+    return false;
+}
+
+// Authenticate User
+async function authenticate(password, rememberMe) {
+    const hash = await hashPassword(password);
+
+    if (hash === PASSWORD_HASH) {
+        sessionStorage.setItem(AUTH_KEY, 'true');
+
+        if (rememberMe) {
+            localStorage.setItem(AUTH_REMEMBER_KEY, 'true');
+        } else {
+            localStorage.removeItem(AUTH_REMEMBER_KEY);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+// Logout User
+function logout() {
+    sessionStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem(AUTH_REMEMBER_KEY);
+    location.reload();
+}
+
+// Show/Hide Content Based on Auth
+function updateAuthUI() {
+    const isAuthenticated = checkAuth();
+    const authScreen = document.getElementById('authScreen');
+    const mainContent = document.getElementById('mainContent');
+
+    if (isAuthenticated) {
+        authScreen.classList.add('hidden');
+        mainContent.classList.add('authenticated');
+    } else {
+        authScreen.classList.remove('hidden');
+        mainContent.classList.remove('authenticated');
+    }
+}
+
+// Setup Auth Event Listeners
+function setupAuthListeners() {
+    const authForm = document.getElementById('authForm');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const password = document.getElementById('password').value;
+        const rememberMe = document.getElementById('rememberMe').checked;
+        const errorDiv = document.getElementById('authError');
+
+        const success = await authenticate(password, rememberMe);
+
+        if (success) {
+            updateAuthUI();
+            errorDiv.textContent = '';
+            // Initialize app after successful login
+            initializeApp();
+            loadProjects();
+            renderProjects();
+            updateStatistics();
+        } else {
+            errorDiv.textContent = 'Incorrect password. Please try again.';
+            document.getElementById('password').value = '';
+            document.getElementById('password').focus();
+        }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to logout?')) {
+            logout();
+        }
+    });
+}
+
+// ============================================
+// END AUTHENTICATION SYSTEM
+// ============================================
+
+// Make hashPassword available in console for password changes
+window.hashPassword = hashPassword;
 
 // Project Data Structure
 let projects = [];
@@ -28,11 +162,20 @@ const EFFORT_SCORES = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
-    initializeApp();
-    setupEventListeners();
-    loadProjects();
-    renderProjects();
-    updateStatistics();
+    // Setup auth listeners first
+    setupAuthListeners();
+
+    // Check authentication and update UI
+    updateAuthUI();
+
+    // Only initialize app if already authenticated
+    if (checkAuth()) {
+        initializeApp();
+        setupEventListeners();
+        loadProjects();
+        renderProjects();
+        updateStatistics();
+    }
 });
 
 // Initialize with default data if empty
