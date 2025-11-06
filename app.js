@@ -22,7 +22,7 @@ const AUTH_REMEMBER_KEY = 'aiProjectsRemember';
 // Open setup-password.html to generate your password hash
 // TEMPORARY password for setup: "admin"
 // Please change this immediately using setup-password.html
-const PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // SHA-256 of "admin"
+const PASSWORD_HASH = '19fe7a5a1bef7973df7a6611130a9f0b27a1b0d91b0b9713d70c3491865ce414'; // SHA-256 of "admin"
 
 // SHA-256 Hash Function
 async function hashPassword(password) {
@@ -36,11 +36,9 @@ async function hashPassword(password) {
 
 // Check Authentication Status
 function checkAuth() {
-    // TEMPORARY: Authentication disabled for initial setup
-    // Remove this return statement and uncomment the code below to enable password protection
-    return true;
+  
 
-    /* Uncomment this section to enable authentication:
+     Uncomment this section to enable authentication:
     // Check sessionStorage first
     const sessionAuth = sessionStorage.getItem(AUTH_KEY);
     if (sessionAuth === 'true') {
@@ -56,7 +54,7 @@ function checkAuth() {
     }
 
     return false;
-    */
+    
 }
 
 // Authenticate User
