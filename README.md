@@ -4,20 +4,9 @@ A comprehensive project management system for tracking AI initiatives in marketi
 
 ## 🔒 Security Features
 
-The system includes **password authentication** to protect your private project data.
+The system includes **password authentication** to protect your private project data:
 
-⚠️ **CURRENT STATUS:** Authentication is **temporarily disabled** for initial setup and testing.
-
-**To enable password protection:**
-1. Open `setup-password.html` in your browser
-2. Create your secure password and generate the hash
-3. Open `app.js` and find line 39 (the `checkAuth()` function)
-4. **Remove** the line `return true;`
-5. **Uncomment** the authentication code below it (remove `/*` and `*/`)
-6. Replace the PASSWORD_HASH on line 25 with your generated hash
-7. Save and commit the changes
-
-Once enabled, the system provides:
+**Security Features:**
 - Login screen required before accessing the system
 - SHA-256 password hashing for security
 - Session-based authentication (cleared when browser closes)
